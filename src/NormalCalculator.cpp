@@ -28,10 +28,10 @@ NormalCalculator::NormalCalculator(std::string &depthPath,
   std::cout << "[INFO] ---------------------\n";
 }
 
-void NormalCalculator::calc(void)
+std::vector<Eigen::Vector3d> NormalCalculator::calc(void)
 {
   assert(_bboxs.size() == _depthPcds.size());
-  std::cout << "[INFO] Calculation start ---";
+  std::cout << "[INFO] Calculation start ---\n";
 
   Eigen::Matrix4d Tdr = _Trd.inverse();
 
@@ -51,12 +51,13 @@ void NormalCalculator::calc(void)
     roiPcd = _getPointRoi(roi, rgbDepthCloud);
     normal = _calcNormal(roiPcd);
 
-    std::cout << "Normal: " << normal << '\n';
+    std::cout << "Normal: \n" << normal << '\n';
 
-    _normals.emplace_back(normal);
+    normals.emplace_back(normal);
   }
-}
 
+  return normals;
+}
 
 /**
  * @brief Get points in the ROI

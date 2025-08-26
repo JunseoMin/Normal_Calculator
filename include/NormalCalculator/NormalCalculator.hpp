@@ -8,14 +8,15 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
-#include <pcl/conversions.h>
 #include <pcl/io/file_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/common/transforms.h>
 
 #include <opencv2/opencv.hpp>
 
 #include "tools/DataHandler.hpp"
+#include "tools/mathtools.hpp"
 
 class NormalCalculator
 {
@@ -24,8 +25,9 @@ public:
                     std::string &bboxPath,
                     std::string &transformPath,
                     std::string &rgbIntrinsicPath);
-  void calc(void);
-  
+                      
+  std::vector<Eigen::Vector3d> calc(void); 
+  std::vector<Eigen::Vector3d> normals;
 private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr _perspectivePcd(pcl::PointCloud<pcl::PointXYZ>::Ptr pcd,
                                                       Eigen::Matrix4d Transform);
@@ -44,7 +46,6 @@ private:
   Eigen::Matrix3d _Id;    // depth intrinsic
   Eigen::Matrix4d _Trd;   // depth camera's position reference to rgb camera
 
-  std::vector<Eigen::Vector3d>    _normals;
 };
 
 #endif // NORMALCALCULATOR_HPP
