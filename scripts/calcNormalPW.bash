@@ -1,0 +1,1 @@
+./build/main_test data/depthcloud/ data/bboxes/2.csv data/transformation.csv data/intrinsic.csv data/output/pw_normal.csv
