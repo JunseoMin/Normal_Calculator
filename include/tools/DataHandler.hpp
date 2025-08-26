@@ -1,19 +1,23 @@
 #ifndef DATAHANDLER_HPP
 #define DATAHANDLER_HPP
 
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include <vector>
 #include <string>
-#include <iostream>
+#include <filesystem>
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
-#include <pcl/conversions.h>
-#include <pcl/io/file_io.h>
-#include <pcl/point_cloud.h>
+#include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 #include <opencv2/opencv.hpp>
 
+namespace fs = std::filesystem;
 
 class DataHandler
 {
@@ -25,10 +29,10 @@ public:
   Eigen::Matrix4d                                          loadTransform(std::string& filePath);
   Eigen::Matrix3d                                          loadIntrinsic(std::string& filePath);
 
-  void saveCSV();
 
 private:
 };
 
+void saveCSV(const std::vector<Eigen::Vector3d>& normals,const std::string& filePath);
 
 #endif //DATALOADER
