@@ -21,7 +21,11 @@ NormalCalculator::NormalCalculator(std::string &depthPath,
   this->_Irgb      = _dh.loadIntrinsic(rgbIntrinsicPath);
 
   std::cout << "[INFO] Loaded datas --------\n";
-  std::cout << "[INFO] TOTAL: " << _bboxs.size() << "frames----\n";
+  std::cout << "[INFO] TOTAL: " << _bboxs.size() << "bbox\n";
+  std::cout << "[INFO] TOTAL: " << _depthPcds.size() << "point clouds\n";
+  std::cout << "[INFO] Intrinsic: \n" << _Irgb << "\n";
+  std::cout << "[INFO] BBox Example: \n" << _bboxs[0].first << "\n";
+  std::cout << "[INFO] ---------------------\n";
 }
 
 void NormalCalculator::calc(void)
@@ -38,21 +42,24 @@ void NormalCalculator::calc(void)
     roi = _bboxs[i];
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr depthCloud = _depthPcds[i];
-    pcl::PointCloud<pcl::PointXYZ>::Ptr rgbDepthCloud;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr rgbDepthCloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-    rgbDepthCloud = _perspectivePcd(depthCloud, _Trd); // Convert depth cloud reference to camera frame
+    pcl::transformPointCloud(*depthCloud,*rgbDepthCloud,_Trd); // Convert depth cloud reference to camera frame
 
     std::vector<Eigen::Vector3d> roiPcd;
 
     roiPcd = _getPointRoi(roi, rgbDepthCloud);
     normal = _calcNormal(roiPcd);
+
+    std::cout << "Normal: " << normal << '\n';
+
     _normals.emplace_back(normal);
   }
 }
 
 
 /**
- * @brief Get points from the ROI
+ * @brief Get points in the ROI
  */
 std::vector<Eigen::Vector3d> NormalCalculator::_getPointRoi(std::pair<Eigen::Vector2d, Eigen::Vector2d> roi,
                                                             pcl::PointCloud<pcl::PointXYZ>::Ptr rgbDepthCloud)
@@ -87,4 +94,24 @@ std::vector<Eigen::Vector3d> NormalCalculator::_getPointRoi(std::pair<Eigen::Vec
   }
 
   return res;
+}
+
+Eigen::Vector3d NormalCalculator::_calcNormal(std::vector<Eigen::Vector3d>& roiPcd){
+  // Calc normal from covariance
+  // Utilizing PCA
+
+  Eigen::MatrixXd mat = vec2mat(roiPcd);
+  Eigen::MatrixXd cov = calcCovMat(mat);
+
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(cov);
+
+  Eigen::VectorXd eigenValues   = solver.eigenvalues();
+  Eigen::MatrixXd eigenVectors  = solver.eigenvectors();
+
+  Eigen::Index idx;
+  eigenValues.minCoeff(&idx);
+
+  Eigen::Vector3d normal = eigenVectors.col(idx);
+
+  return normal.normalized();
 }
